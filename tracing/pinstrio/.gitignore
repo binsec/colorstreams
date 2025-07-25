@@ -1,0 +1,4 @@
+*.log
+obj-intel64/
+obj-ia32/
+build.sh

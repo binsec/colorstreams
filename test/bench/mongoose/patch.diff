@@ -1,0 +1,65 @@
+diff --git a/examples/mqtt_broker/Makefile b/examples/mqtt_broker/Makefile
+index 86f0b09..189b5e9 100644
+--- a/examples/mqtt_broker/Makefile
++++ b/examples/mqtt_broker/Makefile
+@@ -1,4 +1,6 @@
++ADDITIONAL_OPTS =
++
+ PROG = mqtt_broker
+-MODULE_CFLAGS = -DMG_ENABLE_MQTT_BROKER -DMG_ENABLE_HTTP=0
++MODULE_CFLAGS = -DMG_ENABLE_MQTT_BROKER -DMG_ENABLE_HTTP=0 -lpinstrio $(ADDITIONAL_OPTS)
+ #SSL_LIB=openssl
+ include ../examples.mk
+diff --git a/examples/mqtt_broker/mqtt_broker.c b/examples/mqtt_broker/mqtt_broker.c
+index 129e7bc..f3907be 100644
+--- a/examples/mqtt_broker/mqtt_broker.c
++++ b/examples/mqtt_broker/mqtt_broker.c
+@@ -40,14 +40,8 @@ int main(void) {
+   c->priv_2 = &brk;
+   mg_set_protocol_mqtt(c);
+ 
+-  printf("MQTT broker started on %s\n", s_listening_address);
+-
+-  /*
+-   * TODO: Add a HTTP status page that shows current sessions
+-   * and subscriptions
+-   */
+-
+-  for (;;) {
+-    mg_mgr_poll(&mgr, 1000);
+-  }
++  char *packet = "\xc0\xfa\xff\xff\xff\x7f";
++  _pinstrio_source_(packet, 6, "controlled");
++  mbuf_append(&c->recv_mbuf, packet, 10);
++  c->proto_handler(c, MG_EV_RECV, NULL);
+ }
+diff --git a/mongoose.c b/mongoose.c
+index 5c80007..0c154fe 100644
+--- a/mongoose.c
++++ b/mongoose.c
+@@ -10862,6 +10862,7 @@ MG_INTERNAL int parse_mqtt(struct mbuf *io, struct mg_mqtt_message *mm) {
+   }
+ 
+   end = p + len;
++  _pinstrio_sink_(&end, 8, "end");
+   if (lc & 0x80 || end > eop) return MG_MQTT_ERROR_INCOMPLETE_MSG;
+ 
+   mm->cmd = cmd;
+@@ -10992,6 +10993,8 @@ static void mqtt_handler(struct mg_connection *nc, int ev,
+         }
+ 
+         nc->handler(nc, MG_MQTT_EVENT_BASE + mm.cmd, &mm MG_UD_ARG(user_data));
++        _pinstrio_sink_(&len, 4, "len");
++        _pinstrio_abort_();
+         mbuf_remove(io, len);
+       }
+       break;
+diff --git a/mongoose.h b/mongoose.h
+index c59fbb6..11135da 100644
+--- a/mongoose.h
++++ b/mongoose.h
+@@ -1,3 +1,4 @@
++#include "pinstrio.h"
+ #ifdef MG_MODULE_LINES
+ #line 1 "mongoose/src/mg_common.h"
+ #endif

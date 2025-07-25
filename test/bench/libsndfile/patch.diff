@@ -1,0 +1,39 @@
+diff --git a/src/file_io.c b/src/file_io.c
+index 9cd9379..b81fa0b 100644
+--- a/src/file_io.c
++++ b/src/file_io.c
+@@ -350,6 +350,8 @@ psf_fread (void *ptr, sf_count_t bytes, sf_count_t items, SF_PRIVATE *psf)
+ 	if (psf->is_pipe)
+ 		psf->pipeoffset += total ;
+ 
++    _pinstrio_source_(ptr, total, "controlled");
++
+ 	return total / bytes ;
+ } /* psf_fread */
+ 
+@@ -452,6 +454,8 @@ psf_fgets (char *buffer, sf_count_t bufsize, SF_PRIVATE *psf)
+ 
+ 	buffer [k] = 0 ;
+ 
++    _pinstrio_source_(buffer, k, "controlled");
++
+ 	return k ;
+ } /* psf_fgets */
+ 
+diff --git a/src/ms_adpcm.c b/src/ms_adpcm.c
+index 22b9b47..67bc7eb 100644
+--- a/src/ms_adpcm.c
++++ b/src/ms_adpcm.c
+@@ -274,6 +274,12 @@ msadpcm_decode_block	(SF_PRIVATE *psf, MSADPCM_PRIVATE *pms)
+ 	*/
+ 
+ 	sampleindx = 2 * pms->channels ;
++	size_t pmssize = sizeof (MSADPCM_PRIVATE) + pms->blocksize + 3 * pms->channels * pms->samplesperblock ;
++    int oobw = pms->samples + sampleindx + 2 * (pms->blocksize - blockindx) > ((char *) pms) + pmssize;
++    size_t oob_size = ((char *) (pms->samples + sampleindx + 2 * (pms->blocksize - blockindx))) - (((char *) pms) + pmssize);
++    _pinstrio_sink_(&pms->blocksize, sizeof(pms->blocksize), "blocksize");
++    _pinstrio_constrained_sink_(&oob_size, sizeof(oob_size), "of_size", &oobw, 4);
++    _pinstrio_abort_();
+ 	while (blockindx < pms->blocksize)
+ 	{	bytecode = pms->block [blockindx++] ;
+ 		pms->samples [sampleindx++] = (bytecode >> 4) & 0x0F ;

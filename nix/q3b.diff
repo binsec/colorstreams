@@ -1,0 +1,46 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 637709b..214c43c 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -50,14 +50,14 @@ endif()
+ find_package (Threads)
+ 
+ # required if linking to static library
+-add_definitions(-DANTLR4CPP_STATIC)
++#add_definitions(-DANTLR4CPP_STATIC)
+ 
+ # using /MD flag for antlr4_runtime (for Visual C++ compilers only)
+-set(ANTLR4_WITH_STATIC_CRT OFF)
++#set(ANTLR4_WITH_STATIC_CRT OFF)
+ # add external build for antlrcpp
+-include(ExternalAntlr4Cpp)
++#include(ExternalAntlr4Cpp)
+ # add antrl4cpp artifacts to project environment
+-include_directories(${ANTLR4_INCLUDE_DIRS})
++#include_directories(${ANTLR4_INCLUDE_DIRS})
+ 
+ find_package(ANTLR REQUIRED)
+ 
+diff --git a/lib/TermConstIntroducer.cpp b/lib/TermConstIntroducer.cpp
+index 8a0d621..04f0df5 100644
+--- a/lib/TermConstIntroducer.cpp
++++ b/lib/TermConstIntroducer.cpp
+@@ -1,4 +1,5 @@
+ #include "TermConstIntroducer.h"
++#include <iostream>
+ #include <string>
+ #include <sstream>
+ #include <algorithm>
+diff --git a/lib/UnconstrainedVariableSimplifier.h b/lib/UnconstrainedVariableSimplifier.h
+index e30b5e2..02a5eae 100644
+--- a/lib/UnconstrainedVariableSimplifier.h
++++ b/lib/UnconstrainedVariableSimplifier.h
+@@ -1,6 +1,8 @@
+ #ifndef UNCONSTRAINEDVARIABLESIMPLIFIER_H
+ #define UNCONSTRAINEDVARIABLESIMPLIFIER_H
+ 
++#include <iostream>
++#include <sstream>
+ #include "z3++.h"
+ #include <map>
+ #include <vector>

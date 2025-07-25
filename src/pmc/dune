@@ -1,0 +1,7 @@
+(library
+ (name pmc)
+ (public_name colorstreams.pmc)
+ (modules :standard)
+ (flags
+  (:standard -open Base))
+ (libraries base))

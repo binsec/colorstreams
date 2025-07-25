@@ -1,0 +1,5 @@
+(library
+ (name base)
+ (public_name colorstreams.base)
+ (modules :standard)
+ (libraries str dynlink yojson unix binsec))

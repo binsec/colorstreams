@@ -1,0 +1,14 @@
+(executable
+ (public_name colorstreams)
+ (name main)
+ (modules main)
+ (libraries colorstreams))
+
+(library
+ (name colorstreams)
+ (public_name colorstreams)
+ (modules colorstreams)
+ (libraries base pmc symbolic policies))
+
+(documentation
+ (package colorstreams))

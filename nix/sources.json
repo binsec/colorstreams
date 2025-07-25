@@ -1,0 +1,221 @@
+{
+    "antlr4": {
+        "branch": "master",
+        "description": "ANTLR (ANother Tool for Language Recognition) is a powerful parser generator for reading, processing, executing, or translating structured text or binary files.",
+        "homepage": "http://antlr.org",
+        "owner": "antlr",
+        "repo": "antlr4",
+        "rev": "4.13.0",
+        "sha256": "1mw6gqy3qqxjhc4hhj171f2wh9x65l8b03cn2rq0sqhc4xsq0p5k",
+        "type": "tarball",
+        "url": "https://github.com/antlr/antlr4/archive/4.13.0.tar.gz",
+        "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
+    },
+    "antlr4_jar": {
+        "sha256": "19p4f3jl0a34wxq7nj53xn6hl04zaq119i9605bjfni21ny4lvxw",
+        "type": "file",
+        "url": "https://www.antlr.org/download/antlr-4.13.0-complete.jar",
+        "url_template": "https://www.antlr.org/download/antlr-<version>-complete.jar",
+        "version": "4.13.0"
+    },
+    "binsec": {
+        "branch": "0.10.1",
+        "description": "BINSEC binary-level open-source platform",
+        "homepage": null,
+        "owner": "binsec",
+        "repo": "binsec",
+        "rev": "0035d6b0a4cf992e1a57f02134826ac793cfeb15",
+        "sha256": "0mb7n20b1p2np9dchwwcv046ivsan0n2zssp4b8gi7bg5m2nq11m",
+        "type": "tarball",
+        "url": "https://github.com/binsec/binsec/archive/0035d6b0a4cf992e1a57f02134826ac793cfeb15.tar.gz",
+        "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
+    },
+    "ctypes-zarith": {
+        "branch": "master",
+        "description": "Demo how to mix ctypes and \"custom\" OCaml types",
+        "homepage": null,
+        "owner": "fdopen",
+        "repo": "ctypes-zarith",
+        "rev": "5b1e80375de3b47631bd802ac39b35fc775cb3db",
+        "sha256": "0ak31nvjzbrg1a5glbdn49n15ql4x88hsnn3p4x41bpk1n8acg52",
+        "type": "tarball",
+        "url": "https://github.com/fdopen/ctypes-zarith/archive/5b1e80375de3b47631bd802ac39b35fc775cb3db.tar.gz",
+        "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
+    },
+    "cudd": {
+        "branch": "release",
+        "description": "CUDD: CU Decision Diagram package - unofficial git mirror of https://web.archive.org/web/20180127051756/http://vlsi.colorado.edu/~fabio/CUDD/html/index.html (intro: https://web.archive.org/web/20150215010018/http://vlsi.colorado.edu/~fabio/CUDD/cuddIntro.html)",
+        "homepage": "",
+        "owner": "ivmai",
+        "repo": "cudd",
+        "rev": "f54f533303640afd5dbe47a05ebeabb3066f2a25",
+        "sha256": "0hyw9q42ir92vcaa7bwv6f631n85rfsxp463rnmklniq1wf6dyn9",
+        "type": "tarball",
+        "url": "https://github.com/ivmai/cudd/archive/f54f533303640afd5dbe47a05ebeabb3066f2a25.tar.gz",
+        "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
+    },
+    "cudd-3val": {
+        "branch": "release",
+        "description": "CUDD: CU Decision Diagram package - unofficial git mirror of http://vlsi.colorado.edu/~fabio/",
+        "homepage": null,
+        "owner": "matejpavlik",
+        "repo": "cudd-3val",
+        "rev": "23fb4f0494070e19d9d21ff57e5f4f40cff2015a",
+        "sha256": "0y4ppvcy1chznx24yky2wl0vb412b1mddhsqpnbqna805q0219wp",
+        "type": "tarball",
+        "url": "https://github.com/matejpavlik/cudd-3val/archive/23fb4f0494070e19d9d21ff57e5f4f40cff2015a.tar.gz",
+        "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
+    },
+    "nixpkgs": {
+        "branch": "nixos-24.11",
+        "description": "Nix Packages collection & NixOS",
+        "homepage": "",
+        "owner": "NixOS",
+        "repo": "nixpkgs",
+        "rev": "7105ae3957700a9646cc4b766f5815b23ed0c682",
+        "sha256": "0j3jd82iyyck4hpmz7pkak1v27l7pydl0c3vvyz6wfpi612x8xzi",
+        "type": "tarball",
+        "url": "https://github.com/NixOS/nixpkgs/archive/7105ae3957700a9646cc4b766f5815b23ed0c682.tar.gz",
+        "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
+    },
+    "nixpkgs_gdb_12": {
+        "branch": "master",
+        "description": "Nix Packages collection & NixOS",
+        "homepage": "",
+        "owner": "NixOS",
+        "repo": "nixpkgs",
+        "rev": "4d2b37a84fad1091b9de401eb450aae66f1a741e",
+        "sha256": "11w3wn2yjhaa5pv20gbfbirvjq6i3m7pqrq2msf0g7cv44vijwgw",
+        "type": "tarball",
+        "url": "https://github.com/NixOS/nixpkgs/archive/4d2b37a84fad1091b9de401eb450aae66f1a741e.tar.gz",
+        "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
+    },
+    "ocaml-bitwuzla": {
+        "branch": "master",
+        "repo": "https://github.com/bitwuzla/ocaml-bitwuzla.git",
+        "rev": "6642f7a47551185e924d99a3979b793950ccb18f",
+        "submodules": true,
+        "type": "git"
+    },
+    "ocaml-bitwuzla-old": {
+        "branch": "master",
+        "repo": "https://github.com/bitwuzla/ocaml-bitwuzla.git",
+        "rev": "ff8954e0121c18806f9ce714278ba894423ec0bc",
+        "submodules": true,
+        "type": "git"
+    },
+    "old_nixpkgs": {
+        "branch": "master",
+        "description": "Nix Packages collection",
+        "homepage": "",
+        "owner": "NixOs",
+        "repo": "nixpkgs",
+        "rev": "671cb8e663d83dc38cd275afac60a5eb0449838a",
+        "sha256": "1nskvjwlijlnp64bk3wraw296anf96zjlqdz1kzybwd1aqcffq0i",
+        "type": "tarball",
+        "url": "https://github.com/NixOs/nixpkgs/archive/671cb8e663d83dc38cd275afac60a5eb0449838a.tar.gz",
+        "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
+    },
+    "pin": {
+        "sha256": "0jrac4d75pa4raz3nzx23xzcl5znz4bzwz0g430rdbw2pcgrcmw0",
+        "type": "tarball",
+        "url": "https://software.intel.com/sites/landingpage/pintool/downloads/pin-3.23-98579-gb15ab7903-gcc-linux.tar.gz",
+        "url_template": "https://software.intel.com/sites/landingpage/pintool/downloads/pin-3.23-98579-gb15ab7903-gcc-linux.tar.gz"
+    },
+    "popcon": {
+        "branch": "main",
+        "description": "Popcon is a front-end for various counting and functional E-MAJSAT solvers.",
+        "homepage": null,
+        "owner": "binsec",
+        "repo": "popcon",
+        "rev": "bac644bb9efea2787a542247ffff21015c5688f3",
+        "sha256": "1bmr6ya992hfs0pnxyn9v6m3s1lpxkql06d00h4f0amkij02lqwb",
+        "type": "tarball",
+        "url": "https://github.com/binsec/popcon/archive/bac644bb9efea2787a542247ffff21015c5688f3.tar.gz",
+        "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
+    },
+    "q3b": {
+        "branch": "dev",
+        "description": null,
+        "homepage": null,
+        "owner": "martinjonas",
+        "repo": "Q3B",
+        "rev": "52bf7889e87946b1639b850c2c452356b00cf948",
+        "sha256": "0gj3hwfvkkjqsa0w6bxsjhnnhb6y0y38rns4xyihxp53mq49j0f0",
+        "type": "tarball",
+        "url": "https://github.com/martinjonas/Q3B/archive/52bf7889e87946b1639b850c2c452356b00cf948.tar.gz",
+        "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
+    },
+    "q3b_pbdd": {
+        "branch": "master",
+        "description": null,
+        "homepage": null,
+        "owner": "matejpavlik",
+        "repo": "q3b",
+        "rev": "d9d5c3a940d5fda1b8a162757f7b423400713636",
+        "sha256": "15m73vmwzjgrh3ssi0lhs7m2kny440ccalrj00w9jpicx7hc4k5a",
+        "type": "tarball",
+        "url": "https://github.com/matejpavlik/q3b/archive/d9d5c3a940d5fda1b8a162757f7b423400713636.tar.gz",
+        "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
+    },
+    "smtlibv2-grammar": {
+        "branch": "master",
+        "description": "ANTLR SMT-LIB v2 Grammar",
+        "homepage": "",
+        "owner": "martinjonas",
+        "repo": "smtlibv2-grammar",
+        "rev": "4a742e44dd",
+        "sha256": "1a7c7r6vdl2jp71wjchkvyq6l5jnswiiir8szd5bdvpag7a62sy9",
+        "type": "tarball",
+        "url": "https://github.com/martinjonas/smtlibv2-grammar/archive/4a742e44dd.tar.gz",
+        "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
+    },
+    "unisim_archisec": {
+        "branch": "0.0.11",
+        "description": "OCaml binding for the external UNISIM DBA decoder",
+        "homepage": "",
+        "owner": "binsec",
+        "repo": "unisim_archisec",
+        "rev": "b765a433b3f9df46c782d8d7174152efb5418dc6",
+        "sha256": "122jc0ss7xj6syy96a0a340d86vvf3rz9wkx9q429mj3kxbdn0zw",
+        "type": "tarball",
+        "url": "https://github.com/binsec/unisim_archisec/archive/b765a433b3f9df46c782d8d7174152efb5418dc6.tar.gz",
+        "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
+    },
+    "yices2_ocaml_bindings": {
+        "branch": "yices-2.6.4",
+        "description": null,
+        "homepage": null,
+        "owner": "SRI-CSL",
+        "repo": "yices2_ocaml_bindings",
+        "rev": "16e91100f82079576d63cbc3c49962178b79dfb9",
+        "sha256": "10gjva3m0kd8ppksr6mx8r715fiy1nm387ri7pcybn59mp93ln01",
+        "type": "tarball",
+        "url": "https://github.com/SRI-CSL/yices2_ocaml_bindings/archive/16e91100f82079576d63cbc3c49962178b79dfb9.tar.gz",
+        "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
+    },
+    "yicesQS": {
+        "branch": "master",
+        "description": "Quantified Satisfiability in Yices",
+        "homepage": null,
+        "owner": "disteph",
+        "repo": "yicesQS",
+        "rev": "d0e27a6bd583232b3da2a5f2a114035feddb5e43",
+        "sha256": "165q0imphy86pyw1448lwgnml16394cc9kxqp3h3a2k2mxqxlivv",
+        "type": "tarball",
+        "url": "https://github.com/disteph/yicesQS/archive/d0e27a6bd583232b3da2a5f2a114035feddb5e43.tar.gz",
+        "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
+    },
+    "z3": {
+        "branch": "master",
+        "description": "The Z3 Theorem Prover",
+        "homepage": null,
+        "owner": "Z3Prover",
+        "repo": "z3",
+        "rev": "621f1f8a850f8875b511e35a03b80634f041f4cc",
+        "sha256": "1pixw9myzkf7jhpy8gc49cxrf4qkj1s2w10h8rd5p0zym4y9k6hz",
+        "type": "tarball",
+        "url": "https://github.com/Z3Prover/z3/archive/621f1f8a850f8875b511e35a03b80634f041f4cc.tar.gz",
+        "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
+    }
+}

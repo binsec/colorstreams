@@ -1,0 +1,91 @@
+diff --git a/apps/s_server.c b/apps/s_server.c
+index 8198d7f..b14c187 100644
+--- a/apps/s_server.c
++++ b/apps/s_server.c
+@@ -142,6 +142,11 @@
+ 
+ /* Until the key-gen callbacks are modified to use newer prototypes, we allow
+  * deprecated functions for openssl-internal code */
++
++#ifdef PINSTRIO_COMMON
++//#include "pinstrio.h"
++#endif
++
+ #ifdef OPENSSL_NO_DEPRECATED
+ #undef OPENSSL_NO_DEPRECATED
+ #endif
+@@ -2382,6 +2387,9 @@ static void close_accept_socket(void)
+ 
+ static int init_ssl_connection(SSL *con)
+ 	{
++#ifdef PINSTRIO_COMMON
++    _pinstrio_start_();
++#endif
+ 	int i;
+ 	const char *str;
+ 	X509 *peer;
+@@ -2415,6 +2423,9 @@ static int init_ssl_connection(SSL *con)
+ 		if (BIO_sock_should_retry(i))
+ 			{
+ 			BIO_printf(bio_s_out,"DELAY\n");
++#ifdef PINSTRIO_COMMON
++            _pinstrio_stop_();
++#endif
+ 			return(1);
+ 			}
+ 
+@@ -2427,6 +2438,9 @@ static int init_ssl_connection(SSL *con)
+ 			}
+ 		else
+ 			ERR_print_errors(bio_err);
++#ifdef PINSTRIO_COMMON
++        _pinstrio_stop_();
++#endif
+ 		return(0);
+ 		}
+ 
+diff --git a/ssl/s3_pkt.c b/ssl/s3_pkt.c
+index 96ba632..36fc2ea 100644
+--- a/ssl/s3_pkt.c
++++ b/ssl/s3_pkt.c
+@@ -269,6 +269,7 @@ int ssl3_read_n(SSL *s, int n, int max, int extend)
+ 	rb->left = left - n;
+ 	s->packet_length += n;
+ 	s->rwstate=SSL_NOTHING;
++    //_pinstrio_source_(s->packet, s->packet_length, "incoming packet:c");
+ 	return(n);
+ 	}
+ 
+@@ -377,6 +378,7 @@ fprintf(stderr, "Record type=%d, Length=%d\n", rr->type, rr->length);
+ 	 * and we have that many bytes in s->packet
+ 	 */
+ 	rr->input= &(s->packet[SSL3_RT_HEADER_LENGTH]);
++    _pinstrio_source_cnt_(rr->input, rr->length, "input:controlled", 1);
+ 
+ 	/* ok, we can now read from 's->packet' data into 'rr'
+ 	 * rr->input points at rr->length bytes, which
+diff --git a/ssl/t1_lib.c b/ssl/t1_lib.c
+index 33afdeb..5d83b9a 100644
+--- a/ssl/t1_lib.c
++++ b/ssl/t1_lib.c
+@@ -109,6 +109,10 @@
+  *
+  */
+ 
++#ifdef PINSTRIO_COMMON
++//#include "pinstrio.h"
++#endif
++
+ #include <stdio.h>
+ #include <openssl/objects.h>
+ #include <openssl/evp.h>
+@@ -2583,6 +2587,9 @@ tls1_process_heartbeat(SSL *s)
+ 		/* Enter response type, length and copy payload */
+ 		*bp++ = TLS1_HB_RESPONSE;
+ 		s2n(payload, bp);
++#ifdef PINSTRIO_COMMON
++        _pinstrio_sink_(&payload, 4, "payload_size");
++#endif        
+ 		memcpy(bp, pl, payload);
+ 		bp += payload;
+ 		/* Random padding */

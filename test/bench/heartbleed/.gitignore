@@ -1,0 +1,6 @@
+*.tar.gz
+*.run
+*.log
+*.smt2
+result
+_patch_

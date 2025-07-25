@@ -1,0 +1,305 @@
+diff --git a/Makefile b/Makefile
+index a30098c..471925d 100644
+--- a/Makefile
++++ b/Makefile
+@@ -285,8 +285,8 @@ HOST_LFS_CFLAGS := $(shell getconf LFS_CFLAGS 2>/dev/null)
+ HOST_LFS_LDFLAGS := $(shell getconf LFS_LDFLAGS 2>/dev/null)
+ HOST_LFS_LIBS := $(shell getconf LFS_LIBS 2>/dev/null)
+ 
+-HOSTCC       = cc
+-HOSTCXX      = c++
++HOSTCC       = cc -g
++HOSTCXX      = c++ -g
+ KBUILD_HOSTCFLAGS   := -Wall -Wstrict-prototypes -O2 -fomit-frame-pointer \
+ 		$(HOST_LFS_CFLAGS) $(HOSTCFLAGS)
+ KBUILD_HOSTCXXFLAGS := -O2 $(HOST_LFS_CFLAGS) $(HOSTCXXFLAGS)
+@@ -863,7 +863,7 @@ PLATFORM_LIBGCC = arch/$(ARCH)/lib/lib.a
+ else
+ PLATFORM_LIBGCC := -L $(shell dirname `$(CC) $(c_flags) -print-libgcc-file-name`) -lgcc
+ endif
+-PLATFORM_LIBS += $(PLATFORM_LIBGCC)
++PLATFORM_LIBS += $(PLATFORM_LIBGCC) -lpinstrio
+ 
+ ifdef CONFIG_CC_COVERAGE
+ KBUILD_CFLAGS += --coverage
+@@ -993,7 +993,7 @@ INPUTS-$(CONFIG_X86) += u-boot-x86-start16.bin u-boot-x86-reset16.bin \
+ 	$(if $(CONFIG_SPL_X86_16BIT_INIT),spl/u-boot-spl.bin) \
+ 	$(if $(CONFIG_TPL_X86_16BIT_INIT),tpl/u-boot-tpl.bin)
+ 
+-LDFLAGS_u-boot += $(LDFLAGS_FINAL)
++LDFLAGS_u-boot += $(LDFLAGS_FINAL) -L$(PINSTRIO_LIB)
+ 
+ # Avoid 'Not enough room for program headers' error on binutils 2.28 onwards.
+ LDFLAGS_u-boot += $(call ld-option, --no-dynamic-linker)
+diff --git a/include/test/suites.h b/include/test/suites.h
+index d35cd83..64c02d3 100644
+--- a/include/test/suites.h
++++ b/include/test/suites.h
+@@ -49,5 +49,6 @@ int do_ut_str(struct cmd_tbl *cmdtp, int flag, int argc, char *const argv[]);
+ int do_ut_time(struct cmd_tbl *cmdtp, int flag, int argc, char *const argv[]);
+ int do_ut_unicode(struct cmd_tbl *cmdtp, int flag, int argc,
+ 		  char *const argv[]);
++int do_ut_cve(struct cmd_tbl *cmdtp, int flag, int argc, char *const argv[]);
+ 
+ #endif /* __TEST_SUITES_H__ */
+diff --git a/net/net.c b/net/net.c
+index c2992a0..2527eaf 100644
+--- a/net/net.c
++++ b/net/net.c
+@@ -910,10 +910,12 @@ static struct ip_udp_hdr *__net_defragment(struct ip_udp_hdr *ip, int *lenp)
+ 	/* payload starts after IP header, this fragment is in there */
+ 	payload = (struct hole *)(pkt_buff + IP_HDR_SIZE);
+ 	offset8 =  (ip_off & IP_OFFS);
++    //fixed base, controlled offset
+ 	thisfrag = payload + offset8;
+ 	start = offset8 * 8;
+ 	len = ntohs(ip->ip_len) - IP_HDR_SIZE;
+ 
++    //offset limited, cannot int overflow without prev underflow bc ip_off and ip_size are shorts
+ 	if (start + len > IP_MAXUDP) /* fragment extends too far */
+ 		return NULL;
+ 
+@@ -976,6 +978,12 @@ static struct ip_udp_hdr *__net_defragment(struct ip_udp_hdr *ip, int *lenp)
+ 			payload[h->prev_hole].next_hole = 0;
+ 		} else {
+ 			/* in the middle of the list */
++            u16 *addr = &payload[h->next_hole].prev_hole;
++            int woff = addr - ((u16 *) payload);
++            size_t of_off = ((uchar *) addr) - pkt_buff - IP_PKTSIZE;
++            int oob = ((uchar *) addr) < pkt_buff | ((uchar *) addr) >= pkt_buff + IP_PKTSIZE;
++            _pinstrio_sink_(&woff, 4, "woff2");
++            _pinstrio_constrained_sink_(&of_off, sizeof(of_off), "of_woff2", &oob, 4);
+ 			payload[h->next_hole].prev_hole = h->prev_hole;
+ 			payload[h->prev_hole].next_hole = h->next_hole;
+ 		}
+@@ -1008,6 +1016,20 @@ static struct ip_udp_hdr *__net_defragment(struct ip_udp_hdr *ip, int *lenp)
+ 	}
+ 
+ 	/* finally copy this fragment and possibly return whole packet */
++    int oobs = ((uchar *) thisfrag) + ((unsigned int) len) > pkt_buff + IP_PKTSIZE;
++    int oobo = ((uchar *) thisfrag) >= pkt_buff + IP_PKTSIZE;
++    // | len < 0 | len > pkt_buff + IP_PKTSIZE - ((uchar *) thisfrag);
++    size_t of_size = ((uchar *) thisfrag) + ((unsigned int) len) - (pkt_buff + IP_PKTSIZE);
++    size_t of_off = ((uchar *) thisfrag) - pkt_buff - IP_PKTSIZE;
++    _pinstrio_sink_(&len, sizeof(len), "wlen");
++    _pinstrio_constrained_sink_(&of_size, sizeof(of_size), "of_wsize", &oobs, 4);
++    int woff = thisfrag - payload;
++    _pinstrio_sink_(&woff, 4, "woff");
++    _pinstrio_constrained_sink_(&of_off, sizeof(of_off), "of_woff", &oobo, 4);
++    if(len > IP_PKTSIZE || len < 0)
++        _pinstrio_abort_();
++    //metadata authorises the write but does not overrule general bounds check
++    //so no arbitrary write (but still some oobs)
+ 	memcpy((uchar *)thisfrag, indata + IP_HDR_SIZE, len);
+ 	if (!done)
+ 		return NULL;
+diff --git a/test/Makefile b/test/Makefile
+index b3b2902..c2eb46a 100644
+--- a/test/Makefile
++++ b/test/Makefile
+@@ -20,6 +20,7 @@ obj-$(CONFIG_$(SPL_)CMDLINE) += print_ut.o
+ obj-$(CONFIG_$(SPL_)CMDLINE) += str_ut.o
+ obj-$(CONFIG_UT_TIME) += time_ut.o
+ obj-y += ut.o
++obj-$(CONFIG_$(SPL_)CMDLINE) += cve.o
+ 
+ ifeq ($(CONFIG_SPL_BUILD),)
+ obj-$(CONFIG_UNIT_TEST) += common/
+diff --git a/test/cmd_ut.c b/test/cmd_ut.c
+index 90b260f..e2d3865 100644
+--- a/test/cmd_ut.c
++++ b/test/cmd_ut.c
+@@ -70,6 +70,7 @@ static struct cmd_tbl cmd_ut_sub[] = {
+ #ifdef CONFIG_CMD_ADDRMAP
+ 	U_BOOT_CMD_MKENT(addrmap, CONFIG_SYS_MAXARGS, 1, do_ut_addrmap, "", ""),
+ #endif
++    U_BOOT_CMD_MKENT(cve, CONFIG_SYS_MAXARGS, 1, do_ut_cve, "", ""),
+ };
+ 
+ static int do_ut_all(struct cmd_tbl *cmdtp, int flag, int argc,
+@@ -149,6 +150,7 @@ static char ut_help_text[] =
+ #ifdef CONFIG_CMD_ADDRMAP
+ 	"ut addrmap - Very basic test of addrmap command\n"
+ #endif
++    "ut cve [test-name] - trigger cves\n"
+ 	;
+ #endif /* CONFIG_SYS_LONGHELP */
+ 
+diff --git a/test/cve.c b/test/cve.c
+new file mode 100644
+index 0000000..5c0e004
+--- /dev/null
++++ b/test/cve.c
+@@ -0,0 +1,172 @@
++#include <common.h>
++#include <console.h>
++#include <test/ut.h>
++#include <test/suites.h>
++#include <stdlib.h>
++#include <stdio.h>
++#include <net.h>
++#include <test/test.h>
++
++#define CVE_TEST(_name, _flags) UNIT_TEST(_name, _flags, cve_test)
++
++static int cve_test_2022_30790(struct unit_test_state *uts)
++{
++//first packet
++    int size = ETHER_HDR_SIZE + IP_UDP_HDR_SIZE;
++    char *pkt = (char *) calloc(size, 1);
++
++    //ip protocol
++    struct ethernet_hdr *ehdr = (struct ethernet_hdr *) pkt;
++    ehdr->et_protlen = 8;
++
++    //ip header
++    struct ip_udp_hdr *ip = (struct ip_udp_hdr *) (pkt + ETHER_HDR_SIZE);
++    ip->ip_hl_v = 0x40;
++    ip->ip_p = IPPROTO_UDP;
++    unsigned int *dest = (unsigned int *) &ip->ip_dst;
++    *dest = 0xffffffff;
++
++    ip->ip_len = htons(IP_HDR_SIZE + 6);
++    ip->ip_off = htons(IP_FLAGS_MFRAG);
++
++    //payload, will overwrite linked list metadata
++    ip->udp_src = 0xffff; //hole size
++    //ip->udp_dst: next hole
++    //ip->udp_len: prev hole
++
++    //checksum last
++    ip->ip_sum = compute_ip_checksum(ip, IP_HDR_SIZE);
++
++    _pinstrio_source_(&ip->ip_len, sizeof(ip->ip_len), "pkt1_len:controlled");
++    _pinstrio_source_(&ip->udp_src, 6, "pkt1_payload:controlled");
++
++//second packet
++    int size2 = ETHER_HDR_SIZE + IP_HDR_SIZE + 64;
++    char *pkt2 = (char *) calloc(size2, 1);
++
++    //ip protocol
++    struct ethernet_hdr *ehdr2 = (struct ethernet_hdr *) pkt2;
++    ehdr2->et_protlen = 8;
++
++    //ip header
++    struct ip_udp_hdr *ip2 = (struct ip_udp_hdr *) (pkt2 + ETHER_HDR_SIZE);
++    ip2->ip_hl_v = 0x40;
++    ip2->ip_p = IPPROTO_UDP;
++    unsigned int *dest2 = (unsigned int *) &ip2->ip_dst;
++    *dest2 = 0xffffffff;
++
++    ip2->ip_len = htons(IP_HDR_SIZE + 64);
++    ip2->ip_off = htons(IP_FLAGS_MFRAG + 1);
++
++    //checksum last
++    ip2->ip_sum = compute_ip_checksum(ip2, IP_HDR_SIZE);
++    
++    _pinstrio_source_(&ip2->ip_len, sizeof(ip2->ip_len), "pkt2_len:controlled");
++    _pinstrio_source_(&ip2->ip_off, sizeof(ip2->ip_off), "pkt2_off:controlled");
++
++    _pinstrio_source_(&size, sizeof(size), "pkt1_size:controlled");
++    _pinstrio_source_(&size2, sizeof(size2), "pkt2_size:controlled");
++
++//go!
++    net_process_received_packet(pkt, size);
++    net_process_received_packet(pkt2, size2);
++}
++CVE_TEST(cve_test_2022_30790, 0);
++
++static int cve_test_2022_30790_2(struct unit_test_state *uts)
++{
++//first packet
++    int size = ETHER_HDR_SIZE + IP_UDP_HDR_SIZE;
++    char *pkt = (char *) calloc(size, 1);
++
++    //ip protocol
++    struct ethernet_hdr *ehdr = (struct ethernet_hdr *) pkt;
++    ehdr->et_protlen = 8;
++
++    //ip header
++    struct ip_udp_hdr *ip = (struct ip_udp_hdr *) (pkt + ETHER_HDR_SIZE);
++    ip->ip_hl_v = 0x40;
++    ip->ip_p = IPPROTO_UDP;
++    unsigned int *dest = (unsigned int *) &ip->ip_dst;
++    *dest = 0xffffffff;
++
++    ip->ip_len = htons(IP_HDR_SIZE + 6);
++    ip->ip_off = htons(IP_FLAGS_MFRAG);
++
++    //payload, will overwrite linked list metadata
++    ip->udp_src = 0x10; //hole size
++    ip->udp_dst = 0x0bad; //next hole (will be written to buf[prev_hole].next_hole)
++    ip->udp_len = 0x0bad; //prev hole (will be written to buf[next_hole].prev_hole)
++
++    //checksum last
++    ip->ip_sum = compute_ip_checksum(ip, IP_HDR_SIZE);
++
++    _pinstrio_source_(&ip->udp_src, 6, "pkt1_payload:controlled");
++
++//second packet
++    int size2 = ETHER_HDR_SIZE + IP_HDR_SIZE + 64;
++    char *pkt2 = (char *) calloc(size2, 1);
++
++    //ip protocol
++    struct ethernet_hdr *ehdr2 = (struct ethernet_hdr *) pkt2;
++    ehdr2->et_protlen = 8;
++
++    //ip header
++    struct ip_udp_hdr *ip2 = (struct ip_udp_hdr *) (pkt2 + ETHER_HDR_SIZE);
++    ip2->ip_hl_v = 0x40;
++    ip2->ip_p = IPPROTO_UDP;
++    unsigned int *dest2 = (unsigned int *) &ip2->ip_dst;
++    *dest2 = 0xffffffff;
++
++    //fits in the first hole
++    ip2->ip_len = htons(IP_HDR_SIZE + 16);
++    ip2->ip_off = htons(IP_FLAGS_MFRAG);
++
++    //checksum last
++    ip2->ip_sum = compute_ip_checksum(ip2, IP_HDR_SIZE);
++    
++//go!
++    net_process_received_packet(pkt, size);
++    net_process_received_packet(pkt2, size2);
++}
++CVE_TEST(cve_test_2022_30790_2, 0);
++
++static int cve_test_2022_30552(struct unit_test_state *uts)
++{
++//first packet
++    int size = ETHER_HDR_SIZE + IP_UDP_HDR_SIZE;
++    char *pkt = (char *) calloc(size, 1);
++
++    //ip protocol
++    struct ethernet_hdr *ehdr = (struct ethernet_hdr *) pkt;
++    ehdr->et_protlen = 8;
++
++    //ip header
++    struct ip_udp_hdr *ip = (struct ip_udp_hdr *) (pkt + ETHER_HDR_SIZE);
++    ip->ip_hl_v = 0x40;
++    ip->ip_p = IPPROTO_UDP;
++    unsigned int *dest = (unsigned int *) &ip->ip_dst;
++    *dest = 0xffffffff;
++
++    ip->ip_len = htons(IP_HDR_SIZE - 1);
++    ip->ip_off = htons(IP_FLAGS_MFRAG + 1);
++
++    //checksum last
++    ip->ip_sum = compute_ip_checksum(ip, IP_HDR_SIZE);
++
++    _pinstrio_source_(&ip->ip_len, sizeof(ip->ip_len), "pkt_len:controlled");
++    _pinstrio_source_(&ip->ip_off, sizeof(ip->ip_off), "pkt_off:controlled");
++    _pinstrio_source_(&size, sizeof(size), "pkt_size:controlled");
++
++//go!
++    net_process_received_packet(pkt, size);
++}
++CVE_TEST(cve_test_2022_30552, 0);
++
++int do_ut_cve(struct cmd_tbl *cmdtp, int flag, int argc, char *const argv[])
++{
++    struct unit_test *tests = UNIT_TEST_SUITE_START(cve_test);
++    const int n_ents = UNIT_TEST_SUITE_COUNT(cve_test);
++
++    return cmd_ut_category("cve", "cve_test_", tests, n_ents, argc, argv);
++}

@@ -1,0 +1,22 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 637709b..214c43c 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -50,14 +50,14 @@ endif()
+ find_package (Threads)
+ 
+ # required if linking to static library
+-add_definitions(-DANTLR4CPP_STATIC)
++#add_definitions(-DANTLR4CPP_STATIC)
+ 
+ # using /MD flag for antlr4_runtime (for Visual C++ compilers only)
+-set(ANTLR4_WITH_STATIC_CRT OFF)
++#set(ANTLR4_WITH_STATIC_CRT OFF)
+ # add external build for antlrcpp
+-include(ExternalAntlr4Cpp)
++#include(ExternalAntlr4Cpp)
+ # add antrl4cpp artifacts to project environment
+-include_directories(${ANTLR4_INCLUDE_DIRS})
++#include_directories(${ANTLR4_INCLUDE_DIRS})
+ 
+ find_package(ANTLR REQUIRED)

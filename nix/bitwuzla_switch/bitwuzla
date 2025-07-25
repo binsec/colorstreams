@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+
+if [ "$1" = "old" ]; then
+    exec old_bitwuzla ${@:2}
+elif [[ "$1" = old* ]]; then
+    exec old_bitwuzla $(echo "$1" | sed "s/old//") ${@:2}
+else
+    exec new_bitwuzla $@
+fi

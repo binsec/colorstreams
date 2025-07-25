@@ -1,0 +1,488 @@
+<?sdop toc_sections="no" xref_links="no"?>
+<para revisionflag="changed">
+This is a paragraph that should end up with change bars.
+</para>
+<section>
+<title>Exim documentation</title>
+<para>
+<indexterm role="concept">
+<primary>documentation</primary>
+</indexterm>
+This edition of the Exim specification applies to version xxx of Exim.
+</para>
+<literallayout>
+This is a display
+with two lines
+</literallayout>
+<para>
+After <phrase revisionflag="aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa">the display</phrase> we have some code
+</para>
+<literallayout class="monospaced">
+This is code
+with two lines
+</literallayout>
+<para revisionflag="changed">
+Now lets see what happens with some text in a paragraph and a simple table,
+all of which should be marked with a change bar.
+</para>
+<informaltable frame="none" revisionflag="changed">
+<tgroup cols="2" colsep="0" rowsep="0">
+<colspec colwidth="100" align="left"/>
+<colspec colwidth="100" align="left"/>
+<tbody>
+<row>
+<entry>abc</entry>
+<entry>def</entry>
+</row>
+<row>
+<entry>ghi</entry>
+<entry>jkl</entry>
+</row>
+</tbody>
+</tgroup>
+</informaltable>
+<para revisionflag="changed">
+Here is text following the table.
+</para>
+<?sdop format="newpage"?>
+<para>
+This should be at the start of a forced new page.
+</para>
+<itemizedlist>
+<listitem>
+<para>
+This is a paragraph in an identified list.
+</para>
+<literallayout>
+  The <emphasis role="bold">quick</emphasis> brown
+  fox jumps <emphasis>over</emphasis>
+  the lazy.
+</literallayout>
+<para>
+Back from the display.     
+</para>
+</listitem>
+<listitem>
+<para>
+This is a paragraph in an identified list.
+</para>
+<literallayout>
+The <emphasis role="bold">quick</emphasis> brown
+fox jumps <emphasis>over</emphasis>
+the lazy.
+</literallayout>
+<para>
+Back from the display.     
+</para>
+</listitem>
+</itemizedlist>
+</section>
+
+<index role="option">
+<title>Option index</title>
+<?sdop
+  foot_right_recto="&chaptertitle;"
+  foot_right_verso="&chaptertitle;"
+?>
+</index>
+
+<index role="concept">
+<title>Concept index</title>
+</index>
+
+<chapter>
+<title>After the Index</title>
+<?sdop
+  foot_right_recto="&chaptertitle; (&chapternumber;)"
+  foot_right_verso="&chaptertitle; (&chapternumber;)"
+?>
+<para>
+<indexterm role="final">
+<primary>index, after</primary>
+</indexterm>
+<indexterm role="final">
+<primary>after index</primary>
+</indexterm>
+Well, after the index we can in fact have more chapters and one day I&#x2019;ll 
+allow &lt;colophon&gt; as well, which is the more usual thing to have here. But for 
+now we&#x2019;ll just have some text.
+</para>
+</chapter>
+
+<index role="final">
+<title>Final index</title>
+<?sdop
+  foot_right_recto="&chaptertitle;"
+  foot_right_verso="&chaptertitle;"
+?>
+</index>
+
+<chapter>
+<title>How Exim receives and delivers mail</title>
+<titleabbrev>Receiving and delivering mail</titleabbrev>
+<section>
+<title>Overall philosophy</title>
+<para>
+Exim is designed to work efficiently on systems that are permanently connected
+to the Internet and are handling a general mix of mail. In such circumstances,
+most messages can be delivered immediately. Consequently, Exim does not
+maintain independent queues of messages for specific domains or hosts, though
+it does try to send several messages in a single SMTP connection after a host
+has been down, and it also maintains per-host retry information.
+</para>
+<literallayout>
+<literal>A   </literal>        authenticator name (and optional id)
+<literal>C   </literal>        SMTP confirmation on delivery
+<literal>CV  </literal>        certificate verification status
+<literal>DN  </literal>        distinguished name from peer certificate
+<literal>DT  </literal>        on <literal>=&gt;</literal> lines: time taken for a delivery
+<literal>F   </literal>        sender address (on delivery lines)
+<literal>H   </literal>        host name and IP address
+<literal>I   </literal>        local interface used
+<literal>id  </literal>        message id for incoming message
+<literal>P   </literal>        on <literal>&lt;=</literal> lines: protocol used
+<literal>    </literal>        on <literal>=&gt;</literal> and <literal>**</literal> lines: return path
+<literal>QT  </literal>        on <literal>=&gt;</literal> lines: time spent on queue so far
+<literal>    </literal>        on <quote>Completed</quote> lines: time spent on queue
+<literal>R   </literal>        on <literal>&lt;=</literal> lines: reference for local bounce
+<literal>    </literal>        on <literal>=&gt;</literal>  <literal>**</literal> and <literal>==</literal> lines: router name
+<literal>S   </literal>        size of message
+<literal>ST  </literal>        shadow transport name
+<literal>T   </literal>        on <literal>&lt;=</literal> lines: message subject (topic)
+<literal>    </literal>        on <literal>=&gt;</literal> <literal>**</literal> and <literal>==</literal> lines: transport name
+<literal>U   </literal>        local user or RFC 1413 identity
+<literal>X   </literal>        TLS cipher suite
+</literallayout>
+
+<para>
+The string starts with the first character after the colon, which may be
+leading white space. A list of operators is given in section <xref linkend="SECTexpop"/>
+below. The operator notation is used for simple expansion items that have just
+one argument, because it reduces the number of braces and therefore makes the
+string easier to understand.
+</para>
+
+<para>
+The string starts with the first character after the colon, which may be
+leading white space. A list of operators is given in section 
+<xref linkend="SECTexpop"/> below. The operator notation is used for simple 
+expansion items that have just
+one argument, because it reduces the number of braces and therefore makes the
+string easier to understand.
+</para>
+</section>
+
+<section id="SECTexpop">
+<title>Expansion operators</title>
+<para>
+For expansion items that perform transformations on a single argument string,
+</para>
+</section>
+
+<section>
+<title>Output from <quote>make</quote></title>
+
+<para>
+Quoted <quote>word</quote> unquoted.
+</para>
+
+<para>
+This is a paragraph before the list. Make it long enough to split onto more 
+than one line so that we can see exactly where the right hand edge of material 
+on the page should be.
+</para>
+<itemizedlist>
+<listitem>
+<para>
+First
+</para>
+<para>
+New para in first
+</para>
+<itemizedlist>
+<listitem>
+<para>
+This is a nested identified list
+</para>
+</listitem>
+<listitem>
+<para>
+Second item
+</para>
+</listitem>
+</itemizedlist>
+</listitem>
+<listitem>
+<para>
+Last - back in original
+</para>
+</listitem>
+</itemizedlist>
+<para>
+This is a paragraph after the list.
+</para>
+<orderedlist numeration="arabic">
+<listitem>
+<para>
+First
+</para>
+</listitem>
+<listitem>
+<para>
+Last
+</para>
+<para>
+New para in last
+</para>
+<itemizedlist>
+<listitem>
+<para>
+Nested
+</para>
+<itemizedlist>
+<listitem>
+<para>
+Nest 2
+</para>
+<itemizedlist>
+<listitem>
+<para>
+Nest 3 with a couple of items to show how it looks. Make this one long enough 
+so that it will have to be split onto more than one line.
+</para>
+</listitem>
+<listitem>
+<para>
+Items to show how it looks
+</para>
+<itemizedlist>
+<listitem>
+<para>
+Nest 4
+</para>
+<orderedlist numeration="arabic">
+<listitem>
+<para>
+Nest 5
+</para>
+</listitem>
+</orderedlist>
+</listitem>
+</itemizedlist>
+</listitem>
+</itemizedlist>
+</listitem>
+</itemizedlist>
+</listitem>
+</itemizedlist>
+<para>
+Should be back in outer list.
+</para>
+</listitem>
+<listitem>
+<para>
+Another item.
+</para>
+</listitem>
+</orderedlist>
+<para>
+This is a paragraph after the list.
+</para>
+<literallayout class="monospaced">
+This is a display at top level.
+</literallayout>
+<itemizedlist mark="opencircle">
+<listitem>
+<para>
+Force an opencircle for this list.
+</para>
+<literallayout class="monospaced">
+This is a display within a list.
+</literallayout>
+<para>
+Back from the display.
+</para>
+<orderedlist numeration="arabic">
+<listitem>
+<para>
+This is a nested list with a display:
+</para>
+<literallayout class="monospaced">
+Data for the nested display.
+</literallayout>
+<para>
+Back from the display
+</para>
+</listitem>
+</orderedlist>
+</listitem>
+<listitem>
+<para>
+Another item in the outer list.
+</para>
+</listitem>
+</itemizedlist>
+<itemizedlist mark="U+2020">
+<listitem>
+<para>
+This is a daggered itemized list.
+</para>
+</listitem>
+<listitem>
+<para>
+Or, it should be.
+</para>
+</listitem>
+</itemizedlist>
+<?sdop orderedlist_format="%s." ?>
+<orderedlist numeration="loweralpha">
+<listitem>
+<para>
+One.
+</para>
+</listitem>
+<listitem>
+<para>
+Two.
+</para>
+</listitem>
+</orderedlist>
+<?sdop olist_tag_format="" ?>
+<orderedlist numeration="lowerroman">
+<listitem>
+<para>
+One.
+</para>
+</listitem>
+<listitem>
+<para>
+Two.
+</para>
+</listitem>
+</orderedlist>
+<?sdop olist_tag_format="&#x2020;  %s." ?>
+<orderedlist numeration="upperalpha">
+<listitem>
+<para>
+One.
+</para>
+</listitem>
+<listitem>
+<para>
+Two.
+</para>
+</listitem>
+</orderedlist>
+<?sdop olist_tag_format="[%s]" ?>
+<orderedlist numeration="upperroman">
+<listitem>
+<para>
+One.
+</para>
+</listitem>
+<listitem>
+<para>
+Two.
+</para>
+</listitem>
+</orderedlist>
+<para>
+This is normal text before the variable list.
+</para>
+<variablelist>
+<title><emphasis>Font filename extensions</emphasis></title>
+<varlistentry>
+<term><emphasis role="bold">TTF</emphasis></term>
+<listitem>
+<para>
+TrueType fonts.
+</para>
+</listitem></varlistentry>
+<varlistentry>
+<term><emphasis role="bold">PFA</emphasis></term>
+<term><emphasis role="bold">PFB</emphasis></term>
+<listitem>
+<para>
+PostScript fonts.
+</para>
+</listitem></varlistentry>
+<varlistentry>
+<term><emphasis role="bold">Test stuff</emphasis></term>
+<listitem>
+<para>
+This is a paragraph in a vitem that is going to be long enough to cause it to 
+be formatted into more than one line. Let&#x2019;s try a display:
+</para>
+<literallayout class="monospaced">
+This is a monospaced display
+</literallayout>
+<para>
+And now we are back in the normal text of the vitem.
+</para>
+<para>
+This is a second paragraph within the vitem.
+</para>
+</listitem></varlistentry>
+</variablelist>
+<para>
+This is normal text after the variable list.
+</para>
+<orderedlist numeration="arabic">
+<listitem>
+<para>
+Check a bug-fix for nested lists.
+</para>
+</listitem>
+<listitem>
+<orderedlist numeration="loweralpha">
+<listitem>
+<para>
+inner one
+</para>
+</listitem>
+<listitem>
+<para>
+inner two
+</para>
+</listitem>
+</orderedlist>
+</listitem>
+<listitem>
+<para>
+Should be numbered.
+</para>
+</listitem>
+</orderedlist>
+<para>
+Between Lists
+</para>
+<itemizedlist>
+<listitem>
+<para>
+one
+</para>
+</listitem>
+<listitem>
+<itemizedlist mark="square">
+<listitem>
+<para>
+inner one
+</para>
+</listitem>
+<listitem>
+<para>
+inner two
+</para>
+</listitem>
+</itemizedlist>
+</listitem>
+<listitem>
+<para>
+two
+</para>
+</listitem>
+</itemizedlist>
+
+</section>
+</chapter>
+

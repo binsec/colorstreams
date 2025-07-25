@@ -1,0 +1,7 @@
+_build
+result
+*.log
+*.AppImage
+notes
+*.swp
+doc/api

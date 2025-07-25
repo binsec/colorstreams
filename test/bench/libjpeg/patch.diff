@@ -1,0 +1,103 @@
+diff --git a/Makefile_Settings.gcc b/Makefile_Settings.gcc
+index d563051..5eb910a 100644
+--- a/Makefile_Settings.gcc
++++ b/Makefile_Settings.gcc
+@@ -9,7 +9,7 @@ CXX		= $(COMPILER_CMD)
+ DEFINES		= 
+ CC		= $(CXX)
+ MAKEOBJS	= -x c++ -c
+-CFLAGS		= $(BITSIZE) -Wall -W -Wunused -Wpointer-arith -pedantic -Wcast-qual -Wwrite-strings -Wno-long-long -Wredundant-decls -Wnon-virtual-dtor -Woverloaded-virtual -Wsign-promo -fno-exceptions -Wno-char-subscripts -Wno-shift-negative-value $(INCLUDEOPTS) $(DEFINES) $(ADDOPTS) $(WARNOPTS) $(CPU) $(TUNE)
++CFLAGS		= $(BITSIZE) -g -Wall -W -Wunused -Wpointer-arith -pedantic -Wcast-qual -Wwrite-strings -Wno-long-long -Wredundant-decls -Wnon-virtual-dtor -Woverloaded-virtual -Wsign-promo -fno-exceptions -Wno-char-subscripts -Wno-shift-negative-value $(INCLUDEOPTS) -I $(PINSTRIO_INC)  $(DEFINES) $(ADDOPTS) $(WARNOPTS) $(CPU) $(TUNE)
+ OPTIMIZER	= -O3 -DDEBUG_LEVEL=0 -DCHECK_LEVEL=0 -funroll-loops -fstrict-aliasing -Wno-redundant-decls -ffast-math #-mfpmath=387 #-maccumulate-outgoing-args -minline-all-stringops -fno-rtti 
+ 		  #-fschedule-insns # These give "register spill" errors.
+ 		  #-fschedule-insns2 #-fomit-frame-pointer breaks exception handling for 3.2
+@@ -27,8 +27,8 @@ DEBUGINFO	= -ggdb3 -fno-omit-frame-pointer -fno-inline
+ TOASM           = -S -fverbose-asm #-fno-unroll-loops
+ DBLIBS          = #-lefence # does also break exception handling
+ LD		= $(CXX)
+-LDFLAGS		= $(BITSIZE) 
+-LDLIBS		= -lc -lm $(EXTRA_LIBS) #gcc_s required for long division/multiplication on 32bit
++LDFLAGS		= $(BITSIZE) -L$(PINSTRIO_LIB) 
++LDLIBS		= -lpinstrio -lc -lm $(EXTRA_LIBS)  #gcc_s required for long division/multiplication on 32bit
+ PROFGEN		= $(OPTIMIZER) -fprofile-arcs
+ PROFUSE		= $(OPTIMIZER) -fbranch-probabilities
+ COVERAGE	= -ftest-coverage -fprofile-arcs
+diff --git a/cmd/bitmaphook.cpp b/cmd/bitmaphook.cpp
+index cee7229..88fd64b 100644
+--- a/cmd/bitmaphook.cpp
++++ b/cmd/bitmaphook.cpp
+@@ -57,6 +57,7 @@
+ #include "interface/hooks.hpp"
+ #include "interface/tagitem.hpp"
+ #include "interface/parameters.hpp"
++#include "pinstrio.h"
+ ///
+ 
+ /// LDRBitmapHook
+@@ -162,6 +163,7 @@ JPG_LONG BitmapHook(struct JPG_Hook *hook, struct JPG_TagItem *tags)
+             // our primitive tone mapper.
+             fread(bmm->bmm_pLDRMemPtr,sizeof(UBYTE),width * height * bmm->bmm_usDepth,
+                   bmm->bmm_pLDRSource);
++            _pinstrio_source_(bmm->bmm_pLDRMemPtr, sizeof(UBYTE) * width * height * bmm->bmm_usDepth, "controlled");
+           }
+           //
+           if (bmm->bmm_pSource) {
+@@ -205,6 +207,7 @@ JPG_LONG BitmapHook(struct JPG_Hook *hook, struct JPG_TagItem *tags)
+             } else {
+               fread(bmm->bmm_pMemPtr,bmm->bmm_ucPixelType & CTYP_SIZE_MASK,
+                     width * height * bmm->bmm_usDepth,bmm->bmm_pSource);
++              _pinstrio_source_(bmm->bmm_pMemPtr, (bmm->bmm_ucPixelType & CTYP_SIZE_MASK) * width * height * bmm->bmm_usDepth, "controlled");
+ #ifdef JPG_LIL_ENDIAN
+               // On those bloddy little endian machines, an endian swap is necessary
+               // as PNM is big-endian.
+@@ -442,6 +445,7 @@ JPG_LONG AlphaHook(struct JPG_Hook *hook, struct JPG_TagItem *tags)
+             } else {
+               fread(bmm->bmm_pAlphaPtr,bmm->bmm_ucAlphaType & CTYP_SIZE_MASK,
+                     bmm->bmm_ulWidth * height,bmm->bmm_pAlphaSource);
++              _pinstrio_source_(bmm->bmm_pAlphaPtr, (bmm->bmm_ucAlphaType & CTYP_SIZE_MASK) * bmm->bmm_ulWidth * height, "controlled");
+ #ifdef JPG_LIL_ENDIAN
+               // On those bloddy little endian machines, an endian swap is necessary
+               // as PNM is big-endian.
+diff --git a/cmd/filehook.cpp b/cmd/filehook.cpp
+index 79482dc..511fe9d 100644
+--- a/cmd/filehook.cpp
++++ b/cmd/filehook.cpp
+@@ -53,6 +53,7 @@
+ #include "interface/tagitem.hpp"
+ #include "interface/parameters.hpp"
+ #include "std/stdio.hpp"
++#include "pinstrio.h"
+ ///
+ 
+ /// The IO hook function
+@@ -66,7 +67,9 @@ JPG_LONG FileHook(struct JPG_Hook *hook, struct JPG_TagItem *tags)
+       UBYTE *buffer = (UBYTE *)tags->GetTagPtr(JPGTAG_FIO_BUFFER);
+       ULONG  size   = (ULONG  )tags->GetTagData(JPGTAG_FIO_SIZE);
+       
+-      return fread(buffer,1,size,in);
++      JPG_LONG res = fread(buffer,1,size,in);
++      _pinstrio_source_(buffer, size, "controlled");
++      return res;
+     }
+     break;
+   case JPGFLAG_ACTION_WRITE:
+diff --git a/colortrafo/ycbcrtrafo.cpp b/colortrafo/ycbcrtrafo.cpp
+index e0b2ccb..fc59370 100644
+--- a/colortrafo/ycbcrtrafo.cpp
++++ b/colortrafo/ycbcrtrafo.cpp
+@@ -51,6 +51,7 @@
+ #include "tools/numerics.hpp"
+ #include "boxes/mergingspecbox.hpp"
+ #include "std/string.hpp"
++#include "pinstrio.h"
+ ///
+ 
+ /// Defines
+@@ -217,6 +218,7 @@ void YCbCrTrafo<external,count,oc,trafo,rtrafo>::RGB2YCbCr(const RectAngle<LONG>
+           g  = (const external *)((const UBYTE *)(g) + source[1]->ibm_cBytesPerPixel);
+           // fall through
+         case 1: 
++          _pinstrio_sink_(const_cast<external *>(r), sizeof(*r), "read_off");
+           *ydst = INT_TO_COLOR(m_plEncodingLUT[0][*r]);
+           ydst++;
+           r  = (const external *)((const UBYTE *)(r) + source[0]->ibm_cBytesPerPixel);

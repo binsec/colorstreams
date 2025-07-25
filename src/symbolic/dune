@@ -1,0 +1,8 @@
+(include_subdirs qualified)
+
+(library
+ (name symbolic)
+ (public_name colorstreams.symbolic)
+ (flags
+  (:standard -open Base))
+ (libraries base pmc binsec.amd64decoder binsec.sse binsec.sse.term binsec.domains binsec.smt binsec))

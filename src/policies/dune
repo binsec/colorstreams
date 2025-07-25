@@ -1,0 +1,7 @@
+(library
+ (name policies)
+ (public_name colorstreams.policies)
+ (modules :standard)
+ (flags
+  (:standard -open Base))
+ (libraries base symbolic pmc))

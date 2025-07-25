@@ -1,0 +1,7 @@
+*.smt2
+*.run
+*.log
+*.json
+*.early
+out*
+test

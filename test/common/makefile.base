@@ -1,0 +1,37 @@
+ifndef VERBOSE
+	VERBOSE = 1
+endif
+
+ifdef LS
+	LS_ = -ls $(LS)
+endif
+
+ifndef OUT
+	OUT = out
+endif
+
+.PHONY: clean_early full_clean
+
+clean_early:
+	rm -f $(OUT)/*.early
+
+full_clean:
+	rm -rf $(OUT)
+
+%.clean: clean_early
+	rm -f $(OUT)/$(@:.clean=.json) $(OUT)/$(@:.clean=.log)
+
+analysis-name = $(word 2,$(subst ., ,$(notdir $1)))
+
+mk_check_run = test -f $(dir $1)config/$(notdir $1).config && test ! -d $(OUT) -o ! -f $(OUT)/$(notdir $1).json
+
+mk_cmd = $(call mk_check_run,$1) && colorstreams -verbose $(VERBOSE) $(LS_) -json $(OUT)/$(notdir $1).json -log $(OUT)/$(notdir $1).log -config "$(if $(CONFIG_OVERRIDE),$(CONFIG_OVERRIDE);,$(if $(CONFIG_BASE),$(if $(call analysis-name,$1),$(CONFIG_BASE)/$(call analysis-name,$1).config,$(CONFIG_BASE)/default.config);))$(dir $1)config/$(notdir $1).config" || true
+
+%: %.setup
+	$(call mk_cmd,$@)
+
+%: %.nix
+	nix-shell --command "$(subst ",\",$(call mk_cmd,$@))" $(dir $@)shell.nix
+
+%:
+	$(call mk_cmd,$@)

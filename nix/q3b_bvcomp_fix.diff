@@ -1,0 +1,19 @@
+diff --git a/lib/.SMTLIBInterpreter.cpp.swp b/lib/.SMTLIBInterpreter.cpp.swp
+new file mode 100644
+index 0000000..b1f80f8
+Binary files /dev/null and b/lib/.SMTLIBInterpreter.cpp.swp differ
+diff --git a/lib/SMTLIBInterpreter.cpp b/lib/SMTLIBInterpreter.cpp
+index 92e3534..fb0bec2 100644
+--- a/lib/SMTLIBInterpreter.cpp
++++ b/lib/SMTLIBInterpreter.cpp
+@@ -762,6 +762,10 @@ antlrcpp::Any SMTLIBInterpreter::visitTerm(SMTLIBv2Parser::TermContext* term)
+         {
+             return z3::lshr(subterms[0], subterms[1]);
+         }
++        else if (identName == "bvcomp")
++        {
++            return z3::ite(subterms[0] == subterms[1], ctx.bv_val(1, 1), ctx.bv_val(0, 1));
++        }
+ 
+         if (isDefinedFunction(identName))
+         {
