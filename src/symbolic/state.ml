@@ -534,7 +534,7 @@ module Make () =
             )
 
         let is_expr_symbolic expr s =
-            match expr with
+            match Expr.simplify expr with
             | Expr.Const(_, size) -> List.init size (fun _ -> false)
             | Var(sto) -> is_symbolic sto s
             | _ -> 

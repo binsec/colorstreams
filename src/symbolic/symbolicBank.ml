@@ -516,7 +516,7 @@ module Make (State : State.Sig) =
 
         let get_sink_formula snk b =
             let name = Identifier.pp_basic snk.Sink.name in
-            let b = List.fold_right touch_and_concr (Expr.get_stos snk.Sink.expr) b in
+            let b = List.fold_right touch_and_concr (Expr.get_stos @@ Expr.simplify snk.Sink.expr) b in
             try
                 let b = 
                     match snk.constr with
@@ -546,7 +546,7 @@ module Make (State : State.Sig) =
             match b.mode with
             | Symbolic ->
             (
-                let b = List.fold_right touch_and_concr (Expr.get_stos snk.Sink.expr) b in
+                let b = List.fold_right touch_and_concr (Expr.get_stos @@ Expr.simplify snk.Sink.expr) b in
                 try
                     let some = ref false in
                     let symb = S.is_expr_symbolic snk.Sink.expr b.state in

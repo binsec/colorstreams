@@ -78,13 +78,13 @@ module ResVal =
             struct
                 let registered = ref Utils.StringMap.empty
 
-                let register name (mk_report : (?similar:((string * t) list) -> t -> (report * Result.generic Lazy.t) option)) =
+                let register name desc (mk_report : (?similar:((string * t) list) -> t -> (report * Result.generic Lazy.t) option)) =
                     if Utils.StringMap.mem name !registered
                     then raise (Failure(Printf.sprintf "could not register oob capability reporter <%s>: name already in use" name))
-                    else registered := Utils.StringMap.add name mk_report !registered
+                    else registered := Utils.StringMap.add name (desc, mk_report) !registered
 
                 let pp () =
-                    let msg = Utils.StringMap.fold (fun name _ res -> res ^ "\n- " ^ name) !registered "Available OOB capability reporters:" in
+                    let msg = Utils.StringMap.fold (fun name (desc, _) res -> res ^ "\n- " ^ name ^ ":\n    " ^ desc) !registered "Available OOB capability reporters:" in
                     Message.Wrap.send (Message.Wrap.BigInfo(msg))
 
                 let _ =
@@ -96,7 +96,7 @@ module ResVal =
 
         let create_report ?(similar = []) name r =
             try
-                let mk_report = Utils.StringMap.find name !Reporters.registered in
+                let _, mk_report = Utils.StringMap.find name !Reporters.registered in
                 {r with report = mk_report ~similar r}
             with Not_found -> raise (Failure(Printf.sprintf "unknown oob capability reporter <%s>" name))
 
@@ -634,7 +634,7 @@ module ResVal =
                     | _ -> None
 
                 let _ =
-                    Reporters.register "default" create_default_report
+                    Reporters.register "default" "Compute a score for each memory mapping that can be hit. Data scores are computed as |domain| / |2^size|. The scores for bases / sizes are computed with weighted quantitative control, with the weight function 1 / (log(2) * d), d being the distance between the parameter and the nearest buffer bound / overflow size, when applicable (i.e., when there is a known valid targeted buffer). Otherwise, base scores are computed the same way as data scores and size scores are computed with weighted quantitative control with the same weight function, except that they are passed directly instead of the distance d. This ensures that scores are biased toward reads / writes close to the buffer / targeted location. The overall score is the mean of all these scores." create_default_report
             end
     end
 

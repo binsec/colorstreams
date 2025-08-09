@@ -194,7 +194,11 @@ module LibFunStubs =
                 let generic_memcpy_desc = "copy <size> bytes from <src> to <tgt> (no overlap)"
 
                 let generic_memcpy itgt isrc isize func _ a =
-                    let size = Z.to_int @@ Trace.stoval @@ Function.get_iarg isize func in
+                    let size =
+                        try
+                            Z.to_int @@ Trace.stoval @@ Function.get_iarg isize func 
+                        with Z.Overflow -> raise (Failure("memcpy size too large!"))
+                    in
                     if size = 0
                     then LibFunStubsBase.Nothing
                     else
@@ -218,7 +222,11 @@ module LibFunStubs =
                 let memmove_cnt = ref 0
 
                 let generic_memmove itgt isrc isize func _ a =
-                    let size = Z.to_int @@ Trace.stoval @@ Function.get_iarg isize func in
+                    let size = 
+                        try
+                            Z.to_int @@ Trace.stoval @@ Function.get_iarg isize func
+                        with Z.Overflow -> raise (Failure("memmove size too large!"))
+                    in
                     if size = 0
                     then LibFunStubsBase.Nothing
                     else
@@ -243,7 +251,11 @@ module LibFunStubs =
                 let generic_memset_desc = "set <size> bytes of <tgt> to <pattern>"
 
                 let generic_memset itgt ipattern isize func _ a =
-                    let size = Z.to_int @@ Trace.stoval @@ Function.get_iarg isize func in
+                    let size = 
+                        try
+                            Z.to_int @@ Trace.stoval @@ Function.get_iarg isize func
+                        with Z.Overflow -> raise (Failure("memset size too large!"))
+                    in
                     let tgt = Trace.stoval @@ Function.get_iarg itgt func in
                     let pattern = Function.get_iarg ipattern func in
                     let pattexp = Expr.Unop(Expr.Restrict(0, 0), Expr.Var(pattern)) in

@@ -898,7 +898,7 @@ let check_oob func addr basesto tgtsto rw addrexpr sizeexpr a =
                     | ResVal.Read -> (Some(true)), None
                     | ResVal.Write(_) -> None, Some(true)
                 in
-                MemMaps.check_perms ~r ~w map
+                MemMaps.check_perms ~r ~w map && Interval.subset stoi map.MemMaps.range
             )
             | _ -> false
         )

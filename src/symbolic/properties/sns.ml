@@ -61,7 +61,7 @@ let of_itv_kind i = function
 
 module Constraints =
     struct
-        let default = ref ["none"]
+        let default = ref ["None"]
 
         let constrs = ref Utils.StringMap.empty
         let suffs = ref Utils.StringMap.empty

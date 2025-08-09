@@ -63,7 +63,7 @@ module ResVal :
         (**report generators*)
         module Reporters :
             sig
-                val register : string -> (?similar:((string * t) list) -> t -> (report * Result.generic Lazy.t) option) -> unit
+                val register : string -> string -> (?similar:((string * t) list) -> t -> (report * Result.generic Lazy.t) option) -> unit
             end
 
         (**default report generator*)
